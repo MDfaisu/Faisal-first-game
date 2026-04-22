@@ -3,7 +3,8 @@ on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: ubuntu-24.04  # Using the latest stable long-term support version
+    # Switching to 22.04 because 24.04 removed libltdl-dev
+    runs-on: ubuntu-22.04 
 
     steps:
       - name: Checkout Code
@@ -29,10 +30,9 @@ jobs:
 
       - name: Build APK with Buildozer
         run: |
-          # The --yes automatically accepts Android SDK licenses
+          # --yes accepts all Android SDK licenses automatically
           buildozer android debug --yes
         env:
-          # Use non-interactive mode for GitHub runners
           BUILDOZER_WARN_ON_ROOT: 0
 
       - name: Upload APK Artifact
@@ -40,4 +40,3 @@ jobs:
         with:
           name: FaisalBird-Game-APK
           path: bin/*.apk
-          if-no-files-found: error
