@@ -1,23 +1,43 @@
-name: Build APK
+name: Build Android APK
 on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: ubuntu-22.04 # Using a stable Ubuntu version
+    runs-on: ubuntu-24.04  # Using the latest stable long-term support version
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Build with Buildozer
-        # This version is currently maintained and stable
-        uses: Enteleform/buildozer-action@v1.1
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          command: buildozer android debug
-          buildozer_version: master
+          python-version: '3.11'
 
-      - name: Upload APK
+      - name: Install Buildozer Dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y git zip unzip autoconf automake libtool pkg-config zlib1g-dev \
+          libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev \
+          python3-pip build-essential libltdl-dev libgmp-dev libmpc-dev libmpfr-dev \
+          openjdk-17-jdk
+
+      - name: Install Buildozer and Cython
+        run: |
+          pip install --upgrade pip
+          pip install buildozer cython==0.29.33
+
+      - name: Build APK with Buildozer
+        run: |
+          # The --yes automatically accepts Android SDK licenses
+          buildozer android debug --yes
+        env:
+          # Use non-interactive mode for GitHub runners
+          BUILDOZER_WARN_ON_ROOT: 0
+
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: FaisalBird-Android-App
+          name: FaisalBird-Game-APK
           path: bin/*.apk
+          if-no-files-found: error
